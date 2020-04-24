@@ -1,0 +1,7 @@
+Laborator Tehnici de optimizare - Tema 2:
+a) Determinantul unei matrice patratice de ordin n;
+b) Daca determinantul unei matrice este nenul, sa se calculeze inversa acesteia;
+c) Sa se implementeze lema substitutiei;
+
+Laborator Tehnici de optimizare - Tema 3:
+Algoritmul simplex primal
