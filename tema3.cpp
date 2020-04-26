@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include "matrix.cpp"
+#include "simplex.h"
+#include "simplex.cpp"
 
 #if 1
     #define pv(x) std::cerr<<#x<<" = "<<(x)<<"; ";std::cerr.flush()
@@ -16,58 +18,97 @@ using namespace std;
 // name=tema2; g++ $name.cpp -o $name.exe && ./$name.exe
 
 
-using Numeric = long double;
 
-void test1() {
-    ifstream fin("matrix.in");
-    Matrix<Numeric> matrix = Matrix<Numeric>::readMatrixFromStream(fin);
-    Matrix<long double> m(vector<vector<long double>>());
+void testSimplexWithBasis() {
+    ifstream fin("simplexWithBasis.in");
+    Matrix<long double> A = Matrix<long double>::readMatrixFromStream(fin);
+    int M = A.get1Dim();
+    int N = A.get2Dim();
+    pv(M);pv(N);pn;
 
-    pv(matrix);pn;
-    pv(matrix.getTranspose());pn;
-    pv((-5) * matrix);pn;
-    pv(matrix + (-1) * matrix);pn;
-    pv(matrix.getSubmatrixWithoutRowAndColumn(1, 2));pn;
-}
-
-void testSquare() {
-    ifstream fin("lemma.in");
-    Matrix<Numeric> matrix = Matrix<Numeric>::readMatrixFromStream(fin);
-    int index;
-    fin >> index;
-
-    int N = matrix.get1Dim();
-    vector<long double> column(N);
-    for (int i = 0; i < N; ++i) {
-        fin >> column[i];
+    vector<long double> b(M);
+    for (long double& val : b) {
+        fin >> val;
     }
 
+    string type;
+    TypeOfObjective obj;
+    fin >> type;
+    assert(type == "min" || type == "max");
+    if (type == "min") {
+        obj = TypeOfObjective::MIN;
+    }
+    else {
+        obj = TypeOfObjective::MAX;
+    }
 
+    vector<long double> c(N);
+    for (long double& val : c) {
+        fin >> val;
+    }
 
-    pv(matrix.getDeterminant());pn;
-    pv(matrix.getCofactorMatrix());pn;
-    pv(matrix.getAdjunctMatrix());pn;
-    pv(matrix.getInverse());pn;
-    pv((-2) * matrix + matrix);pn;
-    pv(matrix * matrix.getInverse());pn;
-    pv(matrix.getColumnCorrectMatrix(index, column));pn;
-    pv(matrix.getInverseOfColumnCorrectedMatrix(index, column));pn;
-    pv(matrix.getColumnCorrectMatrix(index, column) * matrix.getInverseOfColumnCorrectedMatrix(index, column));pn;
+    vector<int> basis(M);
+    for (int& val : basis) {
+        fin >> val;
+        val -= 1;
+    }
+
+    SimplexReturnType result = runSimplex(A, Matrix<long double>(b).getTranspose(), Matrix<long double>(c), obj, basis);
+    pv((int)result.result);pn;
+    pv(result.state.z);pn;
+
+    for (int i = 0; i < result.vvb.size(); ++i) {
+        pv(result.vvb[i]);pn;
+    }
+    for (int i = 0; i < result.state.basis.size(); ++i) {
+        pv(result.state.basis[i]);pn;
+    }
+
 }
 
 
+void testSimplexWithoutBasis() {
+    ifstream fin("simplexWithoutBasis.in");
+    Matrix<long double> A = Matrix<long double>::readMatrixFromStream(fin);
+    int M = A.get1Dim();
+    int N = A.get2Dim();
 
+    vector<long double> b(M);
+    for (long double& val : b) {
+        fin >> val;
+    }
 
+    string type;
+    TypeOfObjective obj;
+    fin >> type;
+    assert(type == "min" || type == "max");
+    if (type == "min") {
+        obj = TypeOfObjective::MIN;
+    }
+    else {
+        obj = TypeOfObjective::MAX;
+    }
 
+    vector<long double> c(N);
+    for (long double& val : c) {
+        fin >> val;
+    }
 
+    SimplexReturnType result = runSimplex(A, Matrix<long double>(b).getTranspose(), Matrix<long double>(c), obj);
 
-
-
+    pv((int)result.result);pn;
+    pv(result.state.z);pn;
+    for (int i = 0; i < result.vvb.size(); ++i) {
+        pv(result.vvb[i]);pn;
+    }
+    for (int i = 0; i < result.state.basis.size(); ++i) {
+        pv(result.state.basis[i]);pn;
+    }
+}
 
 
 int main() {
-    // test1();
-    testSquare();
+    testSimplexWithoutBasis();
 
     return 0;
 }

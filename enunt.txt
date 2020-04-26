@@ -5,3 +5,6 @@ c) Sa se implementeze lema substitutiei;
 
 Laborator Tehnici de optimizare - Tema 3:
 Algoritmul simplex primal
+
+Laborator Tehnici de optimizare - Tema 4:
+Algoritmul simplex primal

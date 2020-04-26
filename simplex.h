@@ -1,10 +1,13 @@
+#ifndef SIMPLEX_HEADER_GUARD
+#define SIMPLEX_HEADER_GUARD
+
+
 #include <utility>
 #include "matrix.cpp"
 
 enum class SimplexResult {
     NO_SOLUTION, OPTIMAL_SOLUTION, INFINITE_SOLUTION
 };
-
 
 enum class TypeOfObjective {
     MIN, MAX
@@ -41,3 +44,7 @@ SimplexReturnType runSimplex(
 );
 
 
+
+
+
+#endif // SIMPLEX_HEADER_GUARD

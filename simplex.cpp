@@ -7,6 +7,24 @@ using namespace std;
 
 const long double EPS = 1e-10;
 
+void printSimplexState(SimplexState state) {
+    string sep = "==================================";
+    cout << "\n\n" << sep << '\n';
+
+    int N = state.z_c.get2Dim();
+
+    cout << state.BbA;
+    for (int v : state.basis) {
+        cout << v << ' ';
+    }
+    cout << '\n' << state.z << ' ';
+    for (int j = 0; j < N; ++j) {
+        cout << state.z_c[0][j] << ' ';
+    }
+    cout << "\n";
+
+    cout << sep << endl;
+}
 
 void assertState(const Matrix<ld>& A, const Matrix<ld>& c, const SimplexState& state) {
     int M = A.get1Dim();
@@ -34,9 +52,11 @@ pair<SimplexResult, pair<int,int>> getPivot(const Matrix<ld>& A, const Matrix<ld
     int M = A.get1Dim();
     int N = A.get2Dim();
 
+    set<int> basisSet(state.basis.begin(), state.basis.end());
+
     vector<int> R_plus;
     for (int j = 0; j < N; ++j) {
-        if (state.z_c[1][j] > 0) {
+        if (basisSet.count(j) == 0 && state.z_c[0][j] > 0) {
             R_plus.push_back(j);
         }
     }
@@ -68,7 +88,8 @@ pair<SimplexResult, pair<int,int>> getPivot(const Matrix<ld>& A, const Matrix<ld
 
     // apply Bland's rule:
     int k = R_plus[0];
-    ld minumum_ratio =  std::numeric_limits<ld>::infinity(), lineIndex = -1, varIndex = -1;
+    ld minumum_ratio = std::numeric_limits<ld>::infinity();
+    int lineIndex = -1, varIndex = -1;
     for (int i = 0; i < M; ++i) {
         if (state.BbA[i][k + 1] <= 0) {
             continue;
@@ -88,7 +109,7 @@ pair<SimplexResult, pair<int,int>> getPivot(const Matrix<ld>& A, const Matrix<ld
 
     return {
         SimplexResult::NO_SOLUTION,
-        {lineIndex, k}
+        {lineIndex, k + 1}
     };
 }
 
@@ -108,7 +129,8 @@ void setBottomRowInState(const Matrix<ld>& A, const Matrix<ld>& c, SimplexState&
         v_cB[i].push_back(c[0][state.basis[i]]);
     }
     Matrix<ld> cB(v_cB);
-    state.z_c = (state.BbA.getTranspose() * cB).getTranspose();
+    state.z_c = (state.BbA.getTranspose() * cB).getSubmatrixWithoutRows({0}).getTranspose();
+    state.z_c = state.z_c - c;
 }
 
 SimplexState changeStateWithPivot(const Matrix<ld>& A, const Matrix<ld>& c, SimplexState state, pair<int,int> pivot) {
@@ -117,7 +139,7 @@ SimplexState changeStateWithPivot(const Matrix<ld>& A, const Matrix<ld>& c, Simp
     int M = A.get1Dim();
     int N = A.get2Dim();
     assert(0 <= pivot.first && pivot.first < M);
-    assert(0 <= pivot.second && pivot.second < N);
+    assert(0 <= pivot.second && pivot.second < N + 1);
 
     SimplexState newState;
 
@@ -138,9 +160,9 @@ SimplexState changeStateWithPivot(const Matrix<ld>& A, const Matrix<ld>& c, Simp
         }
     }
 
-    // set newState.state
+    // set newState.basis
     newState.basis = state.basis;
-    newState.basis[pivot.first] = pivot.second;
+    newState.basis[pivot.first] = pivot.second - 1;
 
     // set newState.z and newState.z_c;
     setBottomRowInState(A, c, newState);
@@ -149,7 +171,16 @@ SimplexState changeStateWithPivot(const Matrix<ld>& A, const Matrix<ld>& c, Simp
     return newState;
 }
 
+vector<ld> getVVB(const Matrix<ld>& BbA) {
+    int M = BbA.get1Dim();
 
+    vector<ld> vvb;
+    for (int i = 0; i < M; ++i) {
+        vvb.push_back(BbA[i][0]);
+    }
+
+    return vvb;
+}
 
 
 
@@ -164,6 +195,7 @@ SimplexReturnType runSimplexWithMinObjective(
     int N = A.get2Dim();
 
     // check that the basis is correct
+    assert(M == basis.size());
     set<int> columns;
     for (int idx : basis) {
         columns.insert(idx);
@@ -179,30 +211,24 @@ SimplexReturnType runSimplexWithMinObjective(
 
     assertState(A, c, state);
 
+    cout << "Starting simplex with the following state: \n";
+
     const int iterationLimit = 1e5;
     int currentIteration = 0;
     while (currentIteration++ < iterationLimit) {
+
+        printSimplexState(state);
+
         auto temp = getPivot(A, c, state);
         SimplexResult result = temp.first;
         pair<int,int> pivot = temp.second;
 
-        if (result == SimplexResult::INFINITE_SOLUTION) {
+        cout << "Pivot: " << pivot.first + 1 << ' ' << pivot.second << "\n\n";
+
+        if (result == SimplexResult::INFINITE_SOLUTION || result == SimplexResult::OPTIMAL_SOLUTION) {
             return SimplexReturnType{
                 result,
-                {},
-                {}
-            };
-        }
-
-        if (result == SimplexResult::OPTIMAL_SOLUTION) {
-            vector<ld> vvb;
-            for (int i = 0; i < M; ++i) {
-                vvb.push_back(state.BbA[i][0]);
-            }
-
-            return SimplexReturnType{
-                SimplexResult::OPTIMAL_SOLUTION,
-                vvb,
+                getVVB(state.BbA),
                 state
             };
         }
@@ -230,10 +256,12 @@ SimplexReturnType runSimplex(
     if (obj == TypeOfObjective::MIN) {
         return runSimplexWithMinObjective(A, b, c, basis);
     }
+    else {
+        SimplexReturnType ret = runSimplexWithMinObjective(A, b, (-1) * c, basis);
+        ret.state.z *= (-1);
+        return ret;
+    }
 
-    SimplexReturnType ret = runSimplexWithMinObjective(A, b, (-1) * c, basis);
-    ret.state.z *= (-1);
-    return ret;
 }
 
 
@@ -264,13 +292,11 @@ SimplexReturnType runSimplex(
 
     Matrix<ld> auxA = (A | Matrix<ld>::getEye(M));
 
-    Matrix<ld> auxC = c;
-    for (int j = 0; j < N; ++j) {
-        auxC[0][j] = 0;
-    }
+    vector<vector<ld>> v_auxC(1, vector<ld>(N + M, 0));
     for (int j = N; j < N + M; ++j) {
-        auxC[0][j] = 1;
+        v_auxC[0][j] = 1;
     }
+    Matrix<ld> auxC = Matrix<ld>(v_auxC);
 
     vector<int> auxBasis;
     for (int j = N; j < N + M; ++j) {
@@ -279,6 +305,9 @@ SimplexReturnType runSimplex(
 
     SimplexReturnType ret = runSimplexWithMinObjective(auxA, b, auxC, auxBasis);
     assert(ret.result != SimplexResult::NO_SOLUTION && ret.result != SimplexResult::INFINITE_SOLUTION);
+
+    cout << "The first simplex of the two phase method has this result:\n";
+    printSimplexState(ret.state);
     
     if (abs(ret.state.z) > EPS) {
         return SimplexReturnType{
@@ -288,15 +317,17 @@ SimplexReturnType runSimplex(
         };
     }
 
-    bool allArtificialNotInBase = true;
+    bool allArtificialNotInBasis = true;
     for (int idx : ret.state.basis) {
         if (idx >= N) {
-            allArtificialNotInBase = false;
+            allArtificialNotInBasis = false;
             break;
         }
     }
 
-    if (allArtificialNotInBase) {
+    if (allArtificialNotInBasis) {
+        cout << "No artificial variables found in basis!\n";
+        cout << "Rerunning simplex with the found basis...\n";
         return runSimplex(A, b, c, obj, ret.state.basis);
     }
 
@@ -324,11 +355,13 @@ SimplexReturnType runSimplex(
         }
     }
 
-    // TODO: check artificial is empty
     if (artificialThatCouldntBeRemoved.size() == 0) {
+        cout << "All artificial variables where removed from the basis!\n";
+        cout << "Rerunning simplex with the found basis...\n";
         return runSimplex(A, b, c, obj, ret.state.basis);
     }
 
+    cout << "Some artificial variables couldn't be removed\n";
 
     vector<int> newBasis;
     for (int idx : ret.state.basis) {
@@ -346,6 +379,7 @@ SimplexReturnType runSimplex(
         remainingRows.insert(i);
     }
     for (int x : artificialThatCouldntBeRemoved) {
+        cout << "Removing row " << x - N + 1 << "...\n";
         remainingRows.erase(x - N);
     }
 
@@ -361,7 +395,7 @@ SimplexReturnType runSimplex(
             v_newB.push_back(aux);
         }
     }
-    Matrix<ld> newB = Matrix(v_newB);
+    Matrix<ld> newB = Matrix<ld>(v_newB);
 
 
     return runSimplex(newA, newB, c, obj, newBasis);

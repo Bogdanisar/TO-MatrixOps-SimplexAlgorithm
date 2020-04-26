@@ -1,7 +1,12 @@
+#ifndef MATRIX_HEADER_GUARD
+#define MATRIX_HEADER_GUARD
+
+
 #include <vector>
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <set>
 
 
 using namespace std;
@@ -36,7 +41,11 @@ public:
         this->matrix = {{1}};
     }
 
-    Matrix(vector<vector<NumberType>> pmatrix) {
+    explicit Matrix(const vector<NumberType>& pvector) {
+        this->matrix.push_back(pvector);
+    }
+
+    Matrix(const vector<vector<NumberType>>& pmatrix) {
         assert(this->isMatrix(pmatrix));
         this->matrix = pmatrix;
     }
@@ -285,6 +294,19 @@ public:
         return Matrix(v);
     }
 
+    Matrix getSubmatrixWithoutRows(set<int> rows) const {
+        int N = this->get1Dim();
+        int M = this->get2Dim();
+
+        vector<vector<NumberType>> v;
+        for (int i = 0; i < N; ++i) {
+            if (rows.count(i) == 0) {
+                v.push_back(this->matrix[i]);
+            }
+        }
+
+        return Matrix(v);
+    }
 
 
 
@@ -313,7 +335,14 @@ public:
 
 
 
-    vector<NumberType>& operator [](int index) const {
+    vector<NumberType>& operator [](int index) {
+        int N = this->get1Dim();
+        assert(0 <= index && index < N);
+
+        return this->matrix[index];
+    }
+
+    vector<NumberType> operator [](int index) const {
         int N = this->get1Dim();
         assert(0 <= index && index < N);
 
@@ -362,18 +391,18 @@ public:
         int O = B.get2Dim();
         assert(( "Matrixes must have a common dimension in product", M == B.get1Dim() ));
 
-        Matrix ret = A;
+        vector<vector<NumberType>> arr(N, vector<NumberType>(O));
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < O; ++j) {
-                ret.matrix[i][j] = 0;
+                arr[i][j] = 0;
 
                 for (int k = 0; k < M; ++k) {
-                    ret.matrix[i][j] += A.matrix[i][k] * B.matrix[k][j];
+                    arr[i][j] += A.matrix[i][k] * B.matrix[k][j];
                 }
             }
         }
 
-        return ret;
+        return Matrix<NumberType>(arr);
     }
 
     friend Matrix operator |(const Matrix& A, const Matrix& B) {
@@ -429,4 +458,5 @@ public:
     }
 };
 
-    
+
+#endif // MATRIX_HEADER_GUARD
