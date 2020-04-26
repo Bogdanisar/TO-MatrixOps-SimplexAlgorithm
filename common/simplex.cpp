@@ -301,8 +301,8 @@ SimplexReturnType runSimplexWithMinObjective(
     // seteaza starea simplex initiala (tabelul)
     SimplexState state = buildInitialState(A, b, c, basis);
 
-    cout << "Se porneste executia unui simplex primal cu functie obiectiv de minim;\n"
-    cout << "Starea initiala (tabelul) este:\n"
+    cout << "Se porneste executia unui simplex primal cu functie obiectiv de minim;\n";
+    cout << "Starea initiala (tabelul) este:\n";
 
     const int iterationLimit = 1e5;
     int currentIteration = 0;
@@ -409,12 +409,16 @@ SimplexReturnType runSimplex(
     printSimplexReturnType(ret);
     
     if (abs(ret.state.z) > EPS) {
+        cout << "Valoarea optima a problemei asociate este strict pozitiva, deci problema initiala nu are solutii\n";
+
         return SimplexReturnType{
             SimplexResult::NO_SOLUTION,
             {},
             {}
         };
     }
+
+    cout << "Valoarea optima a problemei asociate este 0!\n";
 
     bool allArtificialNotInBasis = true;
     for (int idx : ret.state.basis) {
@@ -498,6 +502,7 @@ SimplexReturnType runSimplex(
     }
     Matrix<ld> newB = Matrix<ld>(v_newB);
 
+    cout << "Se aplica simplex primal pe varianta redusa a problemei initiale...\n\n\n";
 
     return runSimplex(newA, newB, c, obj, newBasis);
 }
@@ -779,8 +784,7 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
         };
     }
 
-    // am gasit o solutie optima pentru problema asociata
-
+    cout << "Am gasit o solutia optima pentru problema asociata!\n";
 
     set<int> retBasisSet(ret.state.basis.begin(), ret.state.basis.end());
     set<int> retBasisSetWithout0 = retBasisSet;
@@ -789,6 +793,9 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
 
     if (retBasisSet.count(0) > 0) { // variabila artificiala x0 este in baza gasita
 
+        cout << "Variabila artificiala x0 se afla in baza gasita\n";
+        cout << "deci restul bazei este o baza optima pentru problema initiala!\n";
+
         // atunci restul bazei este o baza optima pentru problema initiala
         vector<int> basisForInitialProblem;
         for (int idx : retBasisSetWithout0) {
@@ -796,9 +803,6 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
         }
 
         SimplexState resultingState = buildInitialState(A, b, c, basisForInitialProblem);
-
-        cout << "Variabila artificiala x0 se afla in baza gasita\n";
-        cout << "deci restul bazei este o baza optima pentru problema initiala!\n";
         return {
             SimplexResult::OPTIMAL_SOLUTION,
             getVVB(resultingState.BbA),
@@ -806,7 +810,7 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
         };
     }
 
-
+    cout << "Variabila artificiala x0 nu se afla in baza gasita!\n";
 
     // gaseste coeficientul lui LARGE_VALUE (M) din expresia functiei obiectiv
     long double coefficient;
