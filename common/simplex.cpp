@@ -7,6 +7,16 @@ using namespace std;
 
 const long double EPS = 1e-10;
 
+enum class PivotResult {
+    NO_SOLUTION, OPTIMAL_SOLUTION, INFINITE_SOLUTION, FOUND_PIVOT
+};
+
+
+
+
+
+// methods common for both primal and dual simplex
+
 void printSimplexState(SimplexState state) {
     string sep = "==================================";
     cout << "\n\n" << sep << '\n';
@@ -46,72 +56,6 @@ void assertState(const Matrix<ld>& A, const Matrix<ld>& c, const SimplexState& s
 }
 
 
-pair<SimplexResult, pair<int,int>> getPivot(const Matrix<ld>& A, const Matrix<ld>& c, const SimplexState& state) {
-    assertState(A, c, state);
-
-    int M = A.get1Dim();
-    int N = A.get2Dim();
-
-    set<int> basisSet(state.basis.begin(), state.basis.end());
-
-    vector<int> R_plus;
-    for (int j = 0; j < N; ++j) {
-        if (basisSet.count(j) == 0 && state.z_c[0][j] > 0) {
-            R_plus.push_back(j);
-        }
-    }
-
-    if (R_plus.size() == 0) {
-        return {
-            SimplexResult::OPTIMAL_SOLUTION,
-            {}
-        };
-    }
-
-    for (int k : R_plus) {
-        bool allNonPositive = true;
-        for (int i = 0; i < M; ++i) {
-            if (state.BbA[i][k + 1] > 0) {
-                allNonPositive = false;
-                break;
-            }
-        }
-
-        if (allNonPositive) {
-            return {
-                SimplexResult::INFINITE_SOLUTION,
-                {}
-            };
-        }
-    }
-
-
-    // apply Bland's rule:
-    int k = R_plus[0];
-    ld minumum_ratio = std::numeric_limits<ld>::infinity();
-    int lineIndex = -1, varIndex = -1;
-    for (int i = 0; i < M; ++i) {
-        if (state.BbA[i][k + 1] <= 0) {
-            continue;
-        }
-
-        ld ratio = state.BbA[i][0] / state.BbA[i][k + 1];
-        if (minumum_ratio > ratio) {
-            minumum_ratio = ratio;
-            varIndex = state.basis[i];
-            lineIndex = i;
-        }
-        else if (minumum_ratio == ratio && varIndex > state.basis[i]) {
-            varIndex = state.basis[i];
-            lineIndex = i;
-        }
-    }
-
-    return {
-        SimplexResult::NO_SOLUTION,
-        {lineIndex, k + 1}
-    };
-}
 
 // set state.z and state.z_c
 void setBottomRowInState(const Matrix<ld>& A, const Matrix<ld>& c, SimplexState& state) {
@@ -133,13 +77,14 @@ void setBottomRowInState(const Matrix<ld>& A, const Matrix<ld>& c, SimplexState&
     state.z_c = state.z_c - c;
 }
 
+// the pivot should be given as a position in the BbA matrix (but not on the first column)
 SimplexState changeStateWithPivot(const Matrix<ld>& A, const Matrix<ld>& c, SimplexState state, pair<int,int> pivot) {
     assertState(A, c, state);
 
     int M = A.get1Dim();
     int N = A.get2Dim();
     assert(0 <= pivot.first && pivot.first < M);
-    assert(0 <= pivot.second && pivot.second < N + 1);
+    assert(0 < pivot.second && pivot.second < N + 1);
 
     SimplexState newState;
 
@@ -184,6 +129,99 @@ vector<ld> getVVB(const Matrix<ld>& BbA) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// primal simplex methods
+
+pair<PivotResult, pair<int,int>> getPrimalPivot(const Matrix<ld>& A, const Matrix<ld>& c, const SimplexState& state) {
+    assertState(A, c, state);
+
+    int M = A.get1Dim();
+    int N = A.get2Dim();
+
+    set<int> basisSet(state.basis.begin(), state.basis.end());
+
+    vector<int> R_plus;
+    for (int j = 0; j < N; ++j) {
+        if (basisSet.count(j) == 0 && state.z_c[0][j] > 0) {
+            R_plus.push_back(j);
+        }
+    }
+
+    if (R_plus.size() == 0) {
+        return {
+            PivotResult::OPTIMAL_SOLUTION,
+            {}
+        };
+    }
+
+    for (int k : R_plus) { // k is a 0-indexed variable index
+        bool allNonPositive = true;
+        for (int i = 0; i < M; ++i) {
+            if (state.BbA[i][k + 1] > 0) {
+                allNonPositive = false;
+                break;
+            }
+        }
+
+        if (allNonPositive) {
+            return {
+                PivotResult::INFINITE_SOLUTION,
+                {}
+            };
+        }
+    }
+
+
+    // apply Bland's rule:
+    int k = R_plus[0]; // k is a 0-indexed variable index
+    ld minumum_ratio = std::numeric_limits<ld>::infinity();
+    int lineIndex = -1, varIndex = -1;
+    for (int i = 0; i < M; ++i) {
+        if (state.BbA[i][k + 1] <= 0) {
+            continue;
+        }
+
+        ld ratio = state.BbA[i][0] / state.BbA[i][k + 1];
+        if (minumum_ratio > ratio) {
+            minumum_ratio = ratio;
+            varIndex = state.basis[i];
+            lineIndex = i;
+        }
+        else if (minumum_ratio == ratio && varIndex > state.basis[i]) {
+            varIndex = state.basis[i];
+            lineIndex = i;
+        }
+    }
+
+    return {
+        PivotResult::FOUND_PIVOT,
+        {lineIndex, k + 1} // return the pivot as a position in the BbA matrix
+    };
+}
+
+
+
 // run the simplex algorithm with a specified starting basis and a min objective function
 SimplexReturnType runSimplexWithMinObjective(
     Matrix<ld> A,
@@ -196,6 +234,8 @@ SimplexReturnType runSimplexWithMinObjective(
 
     // check that the basis is correct
     assert(M == basis.size());
+    sort(basis.begin(), basis.end());
+
     set<int> columns;
     for (int idx : basis) {
         columns.insert(idx);
@@ -211,7 +251,7 @@ SimplexReturnType runSimplexWithMinObjective(
 
     assertState(A, c, state);
 
-    cout << "Starting simplex with the following state: \n";
+    cout << "Starting min-objective primal simplex with the following state: \n";
 
     const int iterationLimit = 1e5;
     int currentIteration = 0;
@@ -219,15 +259,23 @@ SimplexReturnType runSimplexWithMinObjective(
 
         printSimplexState(state);
 
-        auto temp = getPivot(A, c, state);
-        SimplexResult result = temp.first;
+        auto temp = getPrimalPivot(A, c, state);
+        PivotResult result = temp.first;
+        assert(result != PivotResult::NO_SOLUTION);
         pair<int,int> pivot = temp.second;
 
         cout << "Pivot: " << pivot.first + 1 << ' ' << pivot.second << "\n\n";
 
-        if (result == SimplexResult::INFINITE_SOLUTION || result == SimplexResult::OPTIMAL_SOLUTION) {
+        if (result == PivotResult::INFINITE_SOLUTION) {
             return SimplexReturnType{
-                result,
+                SimplexResult::INFINITE_SOLUTION,
+                getVVB(state.BbA),
+                state
+            };
+        }
+        if (result == PivotResult::OPTIMAL_SOLUTION) {
+            return SimplexReturnType{
+                SimplexResult::OPTIMAL_SOLUTION,
                 getVVB(state.BbA),
                 state
             };
@@ -236,7 +284,7 @@ SimplexReturnType runSimplexWithMinObjective(
         state = changeStateWithPivot(A, c, state, pivot);
     }
 
-    assert(( "Stopping simplex algorithm after reaching the iteration limit. Did it cycle?", false ));
+    assert(( "Stopping the primal simplex algorithm after reaching the iteration limit. Did it cycle?", false ));
 }
 
 
@@ -399,4 +447,163 @@ SimplexReturnType runSimplex(
 
 
     return runSimplex(newA, newB, c, obj, newBasis);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// dual simplex methods
+
+pair<PivotResult, pair<int,int>> getDualPivot(const Matrix<ld>& A, const Matrix<ld>& c, const SimplexState& state) {
+    assertState(A, c, state);
+
+    int M = A.get1Dim();
+    int N = A.get2Dim();
+
+    int L = -1;
+    long double minVal;
+    for (int i = 0; i < M; ++i) {
+        if (state.BbA[i][0] < 0) {
+            if (L == -1 || minVal > state.BbA[i][0]) {
+                L = i;
+                minVal = state.BbA[i][0];
+            }
+        }
+    }
+
+    if (L == -1) { // all values were nonnegative
+        return {
+            PivotResult::OPTIMAL_SOLUTION,
+            {}
+        };
+    }
+
+    int k = -1; // k is a 0-indexed variable index
+    long double minRatio;
+    for (int j = 1; j < N + 1; ++j) {
+        if (state.BbA[L][j] < 0) {
+            long double ratio = abs(state.z_c[0][j - 1] / state.BbA[L][j]);
+            if (k == -1 || minRatio > ratio) {
+                k = j - 1;
+                minRatio = ratio;
+            }
+        }
+    }
+
+    if (k == -1) {
+        return {
+            PivotResult::NO_SOLUTION,
+            {}
+        };
+    }
+
+    return {
+        PivotResult::FOUND_PIVOT,
+        {L, k + 1} // return the pivot as a position in the BbA matrix
+    };
+}
+
+
+// run the dual simplex algorithm with a specified starting basis and a min objective function
+SimplexReturnType runDualSimplexWithMinObjective(
+    Matrix<ld> A,
+    Matrix<ld> b,
+    Matrix<ld> c,
+    vector<int> basis
+) {
+    int M = A.get1Dim();
+    int N = A.get2Dim();
+
+    // check that the basis is correct
+    assert(M == basis.size());
+    sort(basis.begin(), basis.end());
+    
+    set<int> columns;
+    for (int idx : basis) {
+        columns.insert(idx);
+    }
+    Matrix<ld> B = A.getSubmatrixWithColumns(columns);
+    assert(( "The given variables don't form a basis", abs(B.getDeterminant()) > EPS ));
+
+    // set initial SimplexState
+    SimplexState state;
+    state.BbA = B.getInverse() * (b | A);
+    state.basis = basis;
+    setBottomRowInState(A, c, state);
+
+    assertState(A, c, state);
+
+    cout << "Starting min-objective dual simplex with the following state: \n";
+
+    const int iterationLimit = 1e5;
+    int currentIteration = 0;
+    while (currentIteration++ < iterationLimit) {
+
+        printSimplexState(state);
+
+        auto temp = getDualPivot(A, c, state);
+        PivotResult result = temp.first;
+        assert(result != PivotResult::INFINITE_SOLUTION);
+        pair<int,int> pivot = temp.second;
+
+        cout << "Pivot: " << pivot.first + 1 << ' ' << pivot.second << "\n\n";
+
+        if (result == PivotResult::OPTIMAL_SOLUTION) {
+            return SimplexReturnType{
+                SimplexResult::OPTIMAL_SOLUTION,
+                getVVB(state.BbA),
+                state
+            };
+        }
+
+        if (result == PivotResult::NO_SOLUTION) {
+            return SimplexReturnType{
+                SimplexResult::NO_SOLUTION,
+                getVVB(state.BbA),
+                state
+            };
+        }
+
+        state = changeStateWithPivot(A, c, state, pivot);
+    }
+
+    assert(( "Stopping the dual simplex algorithm after reaching the iteration limit. Did it cycle?", false ));
+}
+
+
+
+// run the dual simplex algorithm with a specified starting basis
+SimplexReturnType runDualSimplex(
+    Matrix<ld> A,
+    Matrix<ld> b,
+    Matrix<ld> c,
+    TypeOfObjective obj,
+    vector<int> basis
+) {
+    int M = A.get1Dim();
+    int N = A.get2Dim();
+    assert(M <= N);
+
+    if (obj == TypeOfObjective::MIN) {
+        return runDualSimplexWithMinObjective(A, b, c, basis);
+    }
+    else {
+        SimplexReturnType ret = runDualSimplexWithMinObjective(A, b, (-1) * c, basis);
+        ret.state.z *= (-1);
+        return ret;
+    }
+
 }

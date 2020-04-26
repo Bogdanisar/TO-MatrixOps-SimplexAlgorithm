@@ -46,5 +46,24 @@ SimplexReturnType runSimplex(
 
 
 
+// run the dual simplex algorithm without specifying a starting basis
+SimplexReturnType runDualSimplex(
+    Matrix<long double> A,
+    Matrix<long double> b,
+    Matrix<long double> c,
+    TypeOfObjective obj,
+    vector<int> basis
+);
+
+// run the dual simplex algorithm with a specified starting basis
+SimplexReturnType runDualSimplex(
+    Matrix<long double> A,
+    Matrix<long double> b,
+    Matrix<long double> c,
+    TypeOfObjective obj,
+    vector<int> basis
+);
+
+
 
 #endif // SIMPLEX_HEADER_GUARD
