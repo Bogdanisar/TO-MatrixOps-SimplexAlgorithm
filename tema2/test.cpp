@@ -13,13 +13,13 @@
 using namespace std;
 
 
-// name=tema2; g++ $name.cpp -o $name.exe && ./$name.exe
+// name=test; g++ $name.cpp -o $name.exe && ./$name.exe
 
 
 using Numeric = long double;
 
 void test1() {
-    ifstream fin("matrix.in");
+    ifstream fin("test.in");
     Matrix<Numeric> matrix = Matrix<Numeric>::readMatrixFromStream(fin);
     Matrix<long double> m(vector<vector<long double>>());
 
@@ -55,6 +55,7 @@ void testSquare() {
     pv(matrix.getColumnCorrectMatrix(index, column) * matrix.getInverseOfColumnCorrectedMatrix(index, column));pn;
     pv(matrix | matrix);pn;
 }
+
 
 int main() {
     // test1();
