@@ -19,8 +19,8 @@ using namespace std;
 
 
 
-void testDualSimplexWithBasis() {
-    ifstream fin("dualWithBasis.in");
+void testDualSimplexWithDualBasis() {
+    ifstream fin("dualWithDualBasis.in");
     Matrix<long double> A = Matrix<long double>::readMatrixFromStream(fin);
     int M = A.get1Dim();
     int N = A.get2Dim();
@@ -53,7 +53,7 @@ void testDualSimplexWithBasis() {
         val -= 1;
     }
 
-    SimplexReturnType result = runDualSimplex(A, Matrix<long double>(b).getTranspose(), Matrix<long double>(c), obj, basis);
+    SimplexReturnType result = runDualSimplexWithDualBasis(A, Matrix<long double>(b).getTranspose(), Matrix<long double>(c), obj, basis);
     pv((int)result.result);pn;
     pv(result.state.z);pn;
 
@@ -63,53 +63,60 @@ void testDualSimplexWithBasis() {
     for (int i = 0; i < result.state.basis.size(); ++i) {
         pv(result.state.basis[i]);pn;
     }
-
 }
 
 
-// void testDualSimplexWithoutBasis() {
-//     ifstream fin("dualWithoutBasis.in");
-//     Matrix<long double> A = Matrix<long double>::readMatrixFromStream(fin);
-//     int M = A.get1Dim();
-//     int N = A.get2Dim();
 
-//     vector<long double> b(M);
-//     for (long double& val : b) {
-//         fin >> val;
-//     }
+void testDualSimplexWithAnyBasis() {
+    ifstream fin("dualWithAnyBasis.in");
+    Matrix<long double> A = Matrix<long double>::readMatrixFromStream(fin);
+    int M = A.get1Dim();
+    int N = A.get2Dim();
+    pv(M);pv(N);pn;
 
-//     string type;
-//     TypeOfObjective obj;
-//     fin >> type;
-//     assert(type == "min" || type == "max");
-//     if (type == "min") {
-//         obj = TypeOfObjective::MIN;
-//     }
-//     else {
-//         obj = TypeOfObjective::MAX;
-//     }
+    vector<long double> b(M);
+    for (long double& val : b) {
+        fin >> val;
+    }
 
-//     vector<long double> c(N);
-//     for (long double& val : c) {
-//         fin >> val;
-//     }
+    string type;
+    TypeOfObjective obj;
+    fin >> type;
+    assert(type == "min" || type == "max");
+    if (type == "min") {
+        obj = TypeOfObjective::MIN;
+    }
+    else {
+        obj = TypeOfObjective::MAX;
+    }
 
-//     SimplexReturnType result = runDualSimplex(A, Matrix<long double>(b).getTranspose(), Matrix<long double>(c), obj);
+    vector<long double> c(N);
+    for (long double& val : c) {
+        fin >> val;
+    }
 
-//     pv((int)result.result);pn;
-//     pv(result.state.z);pn;
-//     for (int i = 0; i < result.vvb.size(); ++i) {
-//         pv(result.vvb[i]);pn;
-//     }
-//     for (int i = 0; i < result.state.basis.size(); ++i) {
-//         pv(result.state.basis[i]);pn;
-//     }
-// }
+    vector<int> basis(M);
+    for (int& val : basis) {
+        fin >> val;
+        val -= 1;
+    }
+
+    SimplexReturnType result = runDualSimplexWithAnyBasis(A, Matrix<long double>(b).getTranspose(), Matrix<long double>(c), obj, basis);
+    pv((int)result.result);pn;
+    pv(result.state.z);pn;
+
+    for (int i = 0; i < result.vvb.size(); ++i) {
+        pv(result.vvb[i]);pn;
+    }
+    for (int i = 0; i < result.state.basis.size(); ++i) {
+        pv(result.state.basis[i]);pn;
+    }
+}
 
 
 int main() {
-    testDualSimplexWithBasis();
-    // testDualSimplexWithoutBasis();
+    // testDualSimplexWithDualBasis();
+    testDualSimplexWithAnyBasis();
 
     return 0;
 }

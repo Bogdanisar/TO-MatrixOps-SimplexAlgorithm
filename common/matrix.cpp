@@ -50,6 +50,11 @@ public:
         this->matrix = pmatrix;
     }
 
+    Matrix(const int& N, const int& M) {
+        assert(N > 0 && M > 0);
+        this->matrix = vector<vector<NumberType>> (N, vector<NumberType>(M, 0));
+    }
+
     Matrix(const Matrix& other) {
         this->matrix = other.matrix;
     }
@@ -251,7 +256,7 @@ public:
         return EMatrix * myInverse;
     }
 
-    Matrix getSubmatrixWithColumns(set<int> columns) const {
+    Matrix getSubmatrixWithColumns(vector<int> columns) const {
         int N = this->get1Dim();
         int M = this->get2Dim();
 
@@ -259,19 +264,12 @@ public:
             assert(0 <= c && c < M);
         }
 
-        if (columns.size() == M) {
-            return *this;
-        }
-
         vector<vector<NumberType>> v(N, vector<NumberType>(columns.size(), 0));
         int currentColumn = 0;
-        for (int j = 0; j < M; ++j) {
-            if (columns.count(j) == 0) {
-                continue;
-            }
+        for (int c : columns) {
 
             for (int i = 0; i < N; ++i) {
-                v[i][currentColumn] = this->matrix[i][j];
+                v[i][currentColumn] = this->matrix[i][c];
             }
 
             currentColumn += 1;
@@ -426,6 +424,23 @@ public:
         }
 
         return Matrix(v);
+    }
+
+    friend bool operator ==(const Matrix& A, const Matrix& B) {
+        return A.matrix == B.matrix;
+    }
+
+    friend ostream& printMatrix(ostream& out, const Matrix& matrix) {
+        int N = matrix.get1Dim();
+        int M = matrix.get2Dim();
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < M; ++j) {
+                out << matrix.matrix[i][j] << ' ';
+            }
+            out << '\n';
+        }
+
+        return out;
     }
 
     friend ostream& operator <<(ostream& out, const Matrix& matrix) {
