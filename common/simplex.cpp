@@ -73,8 +73,8 @@ void printSimplexReturnType(SimplexReturnType ret) {
         cout << "\nUltima stare la care a ajuns algoritmul este:";
         printSimplexState(ret.state);
     }
-    
-    cout << sep << '\n';
+
+    cout << sep << '\n' << endl;
 }
 
 

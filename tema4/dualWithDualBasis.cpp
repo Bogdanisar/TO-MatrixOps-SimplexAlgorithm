@@ -19,8 +19,8 @@ using namespace std;
 
 
 
-void testSimplexWithBasis() {
-    ifstream fin("simplexWithBasis.in");
+void testDualSimplexWithDualBasis() {
+    ifstream fin("dualWithDualBasis.in");
     Matrix<long double> A = Matrix<long double>::readMatrixFromStream(fin);
     int M = A.get1Dim();
     int N = A.get2Dim();
@@ -53,46 +53,13 @@ void testSimplexWithBasis() {
         val -= 1;
     }
 
-    SimplexReturnType result = runSimplex(A, Matrix<long double>(b).getTranspose(), Matrix<long double>(c), obj, basis);
-    printSimplexReturnType(result);
-}
-
-
-void testSimplexWithoutBasis() {
-    ifstream fin("simplexWithoutBasis.in");
-    Matrix<long double> A = Matrix<long double>::readMatrixFromStream(fin);
-    int M = A.get1Dim();
-    int N = A.get2Dim();
-
-    vector<long double> b(M);
-    for (long double& val : b) {
-        fin >> val;
-    }
-
-    string type;
-    TypeOfObjective obj;
-    fin >> type;
-    assert(type == "min" || type == "max");
-    if (type == "min") {
-        obj = TypeOfObjective::MIN;
-    }
-    else {
-        obj = TypeOfObjective::MAX;
-    }
-
-    vector<long double> c(N);
-    for (long double& val : c) {
-        fin >> val;
-    }
-
-    SimplexReturnType result = runSimplex(A, Matrix<long double>(b).getTranspose(), Matrix<long double>(c), obj);
+    SimplexReturnType result = runDualSimplexWithDualBasis(A, Matrix<long double>(b).getTranspose(), Matrix<long double>(c), obj, basis);
     printSimplexReturnType(result);
 }
 
 
 int main() {
-    // testSimplexWithBasis();
-    testSimplexWithoutBasis();
+    testDualSimplexWithDualBasis();
 
     return 0;
 }
