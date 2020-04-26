@@ -163,7 +163,7 @@ SimplexState buildInitialState(const Matrix<ld>& A, const Matrix<ld>& b, const M
     assert(basis.size() == A.get1Dim());
 
     Matrix<ld> B = A.getSubmatrixWithColumns(basis);
-    assert(( "The given variables don't form a basis", abs(B.getDeterminant()) > EPS ));
+    assert(( "Variabilele date nu formeaza o baza!", abs(B.getDeterminant()) > EPS ));
 
     SimplexState state;
     state.BbA = B.getInverse() * (b | A);
@@ -296,12 +296,13 @@ SimplexReturnType runSimplexWithMinObjective(
     assert(set<int>(basis.begin(), basis.end()).size() == basis.size());
 
     Matrix<ld> B = A.getSubmatrixWithColumns(basis);
-    assert(( "The given variables don't form a basis", abs(B.getDeterminant()) > EPS ));
+    assert(( "Variabilele date nu formeaza o baza", abs(B.getDeterminant()) > EPS ));
 
     // seteaza starea simplex initiala (tabelul)
     SimplexState state = buildInitialState(A, b, c, basis);
 
-    cout << "Starting min-objective primal simplex with the following state: \n";
+    cout << "Se porneste executia unui simplex primal cu functie obiectiv de minim;\n"
+    cout << "Starea initiala (tabelul) este:\n"
 
     const int iterationLimit = 1e5;
     int currentIteration = 0;
@@ -334,7 +335,7 @@ SimplexReturnType runSimplexWithMinObjective(
         state = changeStateWithPivot(A, c, state, pivot);
     }
 
-    assert(( "Stopping the primal simplex algorithm after reaching the iteration limit. Did it cycle?", false ));
+    assert(( "Se forteaza oprirea algoritmului simplex primal dupa multe iteratii. A ciclat?", false ));
 }
 
 
@@ -424,10 +425,12 @@ SimplexReturnType runSimplex(
     }
 
     if (allArtificialNotInBasis) {
-        cout << "No artificial variables found in basis!\n";
-        cout << "Rerunning simplex with the found basis...\n";
+        cout << "Baza nu contine si variabile artificiale!\n";
+        cout << "Se reporneste simplex primal cu baza gasita...\n";
         return runSimplex(A, b, c, obj, ret.state.basis);
     }
+
+    cout << "Baza gasita la faza 1 contine si variabile artificiale\n";
 
     set<int> artificialThatCouldntBeRemoved;
     for (int i = 0; i < M; ++i) {
@@ -454,12 +457,12 @@ SimplexReturnType runSimplex(
     }
 
     if (artificialThatCouldntBeRemoved.size() == 0) {
-        cout << "All artificial variables where removed from the basis!\n";
-        cout << "Rerunning simplex with the found basis...\n";
+        cout << "Toate variabilele artificiale au fost eliminate cu succes din baza!\n";
+        cout << "Se reporneste simplex primal cu baza gasita...\n";
         return runSimplex(A, b, c, obj, ret.state.basis);
     }
 
-    cout << "Some artificial variables couldn't be removed\n";
+    cout << "Unele variabile artificiale nu s-au putut elimina\n";
 
     vector<int> newBasis;
     for (int idx : ret.state.basis) {
@@ -477,7 +480,7 @@ SimplexReturnType runSimplex(
         remainingRows.insert(i);
     }
     for (int x : artificialThatCouldntBeRemoved) {
-        cout << "Removing row " << x - N + 1 << "...\n";
+        cout << "Elimina ecuatia " << x - N + 1 << "...\n";
         remainingRows.erase(x - N);
     }
 
@@ -582,12 +585,13 @@ SimplexReturnType runDualSimplexWithDualBasisAndMinObjective(
     assert(set<int>(basis.begin(), basis.end()).size() == basis.size());
 
     Matrix<ld> B = A.getSubmatrixWithColumns(basis);
-    assert(( "The given variables don't form a basis", abs(B.getDeterminant()) > EPS ));
+    assert(( "Variabilele date nu formeaza o baza", abs(B.getDeterminant()) > EPS ));
 
     // seteaza starea simplex initiala (tabelul)
     SimplexState state = buildInitialState(A, b, c, basis);
 
-    cout << "Starting min-objective dual simplex with the following state: \n";
+    cout << "Incepe executia algoritmului simplex dual cu functie obiectiv de minim\n";
+    cout << "Starea initiala (tabelul) este:\n";
 
     const int iterationLimit = 1e5;
     int currentIteration = 0;
@@ -621,7 +625,7 @@ SimplexReturnType runDualSimplexWithDualBasisAndMinObjective(
         state = changeStateWithPivot(A, c, state, pivot);
     }
 
-    assert(( "Stopping the dual simplex algorithm after reaching the iteration limit. Did it cycle?", false ));
+    assert(( "Se forteaza oprirea algoritmului simplex dual dupa multe iteratii. A ciclat?", false ));
 }
 
 
@@ -674,7 +678,7 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
     }
 
     Matrix<ld> B = A.getSubmatrixWithColumns(basis);
-    assert(( "The given variables don't form a basis", abs(B.getDeterminant()) > EPS ));
+    assert(( "Variabilele date nu formeaza o baza", abs(B.getDeterminant()) > EPS ));
     set<int> basisSet(basis.begin(), basis.end()); // baza ca un set; va contine indici indexati de la 0
 
 
@@ -692,11 +696,12 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
     }
 
     if (aux_state.z_c[0][k] <= 0) { // baza data este dual admisibila
-        cout << "The given basis is actually dually feasible. Applying dual simplex...\n";
+        cout << "Baza oarecare data este chiar dual admisibila! Incepe simplex dual...\n";
         return runDualSimplexWithDualBasisAndMinObjective(A, b, c, basis);
     }
 
-    cout << "The initial k (1-indexed) needed to find the dual basis is " << k + 1 << '\n';
+    cout << "Coloana initiala k gasita (indexata de la 1) este " << k + 1 << '\n';
+    cout << "Incepe algoritmul de gasire al bazei dual admisibile...\n";
 
     // construieste A1 pentru problema liniara asociata
     Matrix<ld> A1(M + 1, N + 1);
@@ -752,7 +757,7 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
     }
     
 
-    cout << "newBasis: " << '\n';
+    cout << "Baza cu care incepe algoritmul simplex dual in problema liniara asociata:\n";
     for (int val : newBasis) {
         cout << val << ' ';
     }
@@ -766,7 +771,7 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
     printSimplexReturnType(ret);
 
     if (ret.result == SimplexResult::NO_SOLUTION) {
-        cout << "The extended problem did not have a solution so the initial problem does not have a solution\n";
+        cout << "Problema liniara asociata nu are solutie, deci nu are nici problema initiala\n";
         return {
             SimplexResult::NO_SOLUTION,
             {},
@@ -792,8 +797,8 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
 
         SimplexState resultingState = buildInitialState(A, b, c, basisForInitialProblem);
 
-        cout << "The artificial variable was in the returned basis.\n";
-        cout << "so the rest of the basis is an optimal basis for the initial problem.\n";
+        cout << "Variabila artificiala x0 se afla in baza gasita\n";
+        cout << "deci restul bazei este o baza optima pentru problema initiala!\n";
         return {
             SimplexResult::OPTIMAL_SOLUTION,
             getVVB(resultingState.BbA),
@@ -817,7 +822,7 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
         coefficient = (cB1W.getTranspose() * B1W)[0][0];
     }
 
-    cout << "M's coefficient is " << coefficient << '\n';
+    cout << "Coeficientul lui M este: " << coefficient << '\n';
     
     if (abs(coefficient) < EPS) { // coeficientul lui M este 0
 
@@ -826,9 +831,9 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
             basisForInitialProblem.push_back(idx - 1);
         }
 
-        cout << "The coefficient was 0,\n";
-        cout << "so the found optimal value of the extended problem\n";
-        cout << "is also an optimal value for the initial problem\n";
+        cout << "Coeficientul a fost 0,\n";
+        cout << "deci valoarea optima gasita pentru problema asociata\n";
+        cout << "este valoare optima si pentru problema initiala\n";
 
         return {
             SimplexResult::OPTIMAL_SOLUTION,
@@ -837,6 +842,9 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
         };
     }
     else {
+        cout << "Coeficientul a fost nenul, deci functia obiectiv depinde de M\n";
+        cout << "Si problema asociata si problema initiala au un optim infinit\n";
+
         return {
             SimplexResult::INFINITE_SOLUTION,
             {},
