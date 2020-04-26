@@ -26,7 +26,8 @@ struct SimplexReturnType {
     SimplexState state;
 };
 
-// run the primal simplex algorithm without specifying a starting basis
+
+// executa algoritmul simplex (pe o functie obiectiv de minim sau maxim) fara a specifica o baza admisibila initiala
 SimplexReturnType runSimplex(
     Matrix<long double> A,
     Matrix<long double> b,
@@ -34,7 +35,8 @@ SimplexReturnType runSimplex(
     TypeOfObjective obj
 );
 
-// run the primal simplex algorithm with a specified feasible starting basis
+
+// executa algoritmul simplex primal pe o baza admisibila specificata (si o functie obiectiv de minim sau maxim)
 SimplexReturnType runSimplex(
     Matrix<long double> A,
     Matrix<long double> b,
@@ -47,7 +49,7 @@ SimplexReturnType runSimplex(
 
 
 
-// run the dual simplex algorithm with a specified dually feasible starting basis and a min/max objective
+// executa algoritmul simplex dual cu o baza dual admisibila specificata si cu o functie obiectiv de minim / maxim
 SimplexReturnType runDualSimplexWithDualBasis(
     Matrix<long double> A,
     Matrix<long double> b,
@@ -56,7 +58,7 @@ SimplexReturnType runDualSimplexWithDualBasis(
     vector<int> basis
 );
 
-// run the dual simplex algorithm with any basis as input (a possibly non-dual basis) and a min/max objective
+// executa algoritmul simplex dual pe o baza oarecare si cu o functie obiectiv de minim sau de maxim
 SimplexReturnType runDualSimplexWithAnyBasis(
     Matrix<long double> A,
     Matrix<long double> b,

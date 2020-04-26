@@ -16,7 +16,7 @@ enum class PivotResult {
 
 
 
-// methods common for both primal and dual simplex
+// metode comune si pentru simplex primal si pentru simplex dual
 
 void printSimplexState(SimplexState state) {
     string sep = "==================================";
@@ -64,17 +64,17 @@ void assertState(const Matrix<ld>& A, const Matrix<ld>& c, const SimplexState& s
 
 
 
-// set state.z and state.z_c
+// seteaza state.z (valoarea functiei obiectiv) si state.z_c (zj - cj)
 void setBottomRowInState(const Matrix<ld>& A, const Matrix<ld>& c, SimplexState& state) {
     int M = A.get1Dim();
 
-    // set state.z
+    // seteaza state.z
     state.z = 0;
     for (int i = 0; i < M; ++i) {
         state.z += c[0][state.basis[i]] * state.BbA[i][0];
     }
 
-    // set state.z_c
+    // seteaza state.z_c
     vector<vector<ld>> v_cB(M);
     for (int i = 0; i < M; ++i) {
         v_cB[i].push_back(c[0][state.basis[i]]);
@@ -84,7 +84,7 @@ void setBottomRowInState(const Matrix<ld>& A, const Matrix<ld>& c, SimplexState&
     state.z_c = state.z_c - c;
 }
 
-// the pivot should be given as a position in the BbA matrix (but not on the first column)
+// pivotul ar trebui dat ca o pozitie in matricea BbA (dar nu pe prima coloana)
 SimplexState changeStateWithPivot(const Matrix<ld>& A, const Matrix<ld>& c, SimplexState state, pair<int,int> pivot) {
     assertState(A, c, state);
 
@@ -95,7 +95,7 @@ SimplexState changeStateWithPivot(const Matrix<ld>& A, const Matrix<ld>& c, Simp
 
     SimplexState newState;
 
-    // set newState.BbA
+    // seteaza newState.BbA
     newState.BbA = state.BbA;
     for (int i = 0; i < M; ++i) {
         if (i == pivot.first) {
@@ -112,11 +112,11 @@ SimplexState changeStateWithPivot(const Matrix<ld>& A, const Matrix<ld>& c, Simp
         }
     }
 
-    // set newState.basis
+    // seteaza newState.basis
     newState.basis = state.basis;
     newState.basis[pivot.first] = pivot.second - 1;
 
-    // set newState.z and newState.z_c;
+    // seteaza newState.z si newState.z_c;
     setBottomRowInState(A, c, newState);
 
     assertState(A, c, newState);
@@ -175,7 +175,7 @@ vector<ld> getVVB(const Matrix<ld>& BbA) {
 
 
 
-// primal simplex methods
+// metode pentru algoritmul simplex primal
 
 pair<PivotResult, pair<int,int>> getPrimalPivot(const Matrix<ld>& A, const Matrix<ld>& c, const SimplexState& state) {
     assertState(A, c, state);
@@ -199,7 +199,7 @@ pair<PivotResult, pair<int,int>> getPrimalPivot(const Matrix<ld>& A, const Matri
         };
     }
 
-    for (int k : R_plus) { // k is a 0-indexed variable index
+    for (int k : R_plus) { // k e indexul unei variabile si e indexat de la 0
         bool allNonPositive = true;
         for (int i = 0; i < M; ++i) {
             if (state.BbA[i][k + 1] > 0) {
@@ -217,8 +217,8 @@ pair<PivotResult, pair<int,int>> getPrimalPivot(const Matrix<ld>& A, const Matri
     }
 
 
-    // apply Bland's rule:
-    int k = R_plus[0]; // k is a 0-indexed variable index
+    // aplica regula lui Bland
+    int k = R_plus[0]; // k e indexul unei variabile si e indexat de la 0
     ld minumum_ratio = std::numeric_limits<ld>::infinity();
     int lineIndex = -1, varIndex = -1;
     for (int i = 0; i < M; ++i) {
@@ -240,13 +240,13 @@ pair<PivotResult, pair<int,int>> getPrimalPivot(const Matrix<ld>& A, const Matri
 
     return {
         PivotResult::FOUND_PIVOT,
-        {lineIndex, k + 1} // return the pivot as a position in the BbA matrix
+        {lineIndex, k + 1} // intoarce pivotul, dar ca o pozitie in matricea BbA;
     };
 }
 
 
 
-// run the simplex algorithm with a specified starting basis and a min objective function
+// executa algoritmul simplex primal pe o baza admisibila specificata si cu o functie obiectiv de minim
 SimplexReturnType runSimplexWithMinObjective(
     Matrix<ld> A,
     Matrix<ld> b,
@@ -256,14 +256,14 @@ SimplexReturnType runSimplexWithMinObjective(
     int M = A.get1Dim();
     int N = A.get2Dim();
 
-    // check that the basis is correct
+    // verifica ca baza e corecta
     assert(basis.size() == M);
     assert(set<int>(basis.begin(), basis.end()).size() == basis.size());
 
     Matrix<ld> B = A.getSubmatrixWithColumns(basis);
     assert(( "The given variables don't form a basis", abs(B.getDeterminant()) > EPS ));
 
-    // set initial SimplexState
+    // seteaza starea simplex initiala (tabelul)
     SimplexState state = buildInitialState(A, b, c, basis);
 
     cout << "Starting min-objective primal simplex with the following state: \n";
@@ -304,7 +304,7 @@ SimplexReturnType runSimplexWithMinObjective(
 
 
 
-// run the simplex algorithm with a specified starting basis
+// executa algoritmul simplex primal pe o baza admisibila specificata (si o functie obiectiv de minim sau maxim)
 SimplexReturnType runSimplex(
     Matrix<ld> A,
     Matrix<ld> b,
@@ -329,7 +329,7 @@ SimplexReturnType runSimplex(
 
 
 
-// run the simplex algorithm without specifying a starting basis
+// executa algoritmul simplex (pe o functie obiectiv de minim sau maxim) fara a specifica o baza admisibila initiala
 SimplexReturnType runSimplex(
     Matrix<ld> A,
     Matrix<ld> b,
@@ -400,8 +400,8 @@ SimplexReturnType runSimplex(
             continue;
         }
 
-        // we have an artificial variable in the basis
-        // try to remove it by doing a pivot
+        // avem o variabila artificiala in baza;
+        // se incearca eliminarea ei printr-o pivotare;
         int k = -1;
         for (int j = 1; j < N + 1; ++j) {
             if (abs(ret.state.BbA[i][j]) > EPS) {
@@ -436,7 +436,7 @@ SimplexReturnType runSimplex(
 
 
 
-    // build remainingRows;
+    // construieste remainingRows;
     set<int> remainingRows;
     for (int i = 0; i < M; ++i) {
         remainingRows.insert(i);
@@ -446,10 +446,10 @@ SimplexReturnType runSimplex(
         remainingRows.erase(x - N);
     }
 
-    // build newA (remove the rows);
+    // construieste newA (eliminand din A unele randuri);
     Matrix<ld> newA = A.getSubmatrixWithRows(remainingRows);
 
-    // build newB (remove the rows);
+    // construieste newB (eliminand din b aceleasi randuri);
     vector<vector<ld>> v_newB;
     for (int i = 0; i < M; ++i) {
         if (remainingRows.count(i) > 0) {
@@ -480,7 +480,7 @@ SimplexReturnType runSimplex(
 
 
 
-// dual simplex methods
+// metode pentru algoritmul simplex dual
 
 pair<PivotResult, pair<int,int>> getDualPivot(const Matrix<ld>& A, const Matrix<ld>& c, const SimplexState& state) {
     assertState(A, c, state);
@@ -499,14 +499,14 @@ pair<PivotResult, pair<int,int>> getDualPivot(const Matrix<ld>& A, const Matrix<
         }
     }
 
-    if (L == -1) { // all values were nonnegative
+    if (L == -1) { // toate valorile au fost >= 0
         return {
             PivotResult::OPTIMAL_SOLUTION,
             {}
         };
     }
 
-    int k = -1; // k is a 0-indexed variable index
+    int k = -1; // k e un index de variabila si e indexat de la 0
     long double minRatio;
     for (int j = 1; j < N + 1; ++j) {
         if (state.BbA[L][j] < 0) {
@@ -527,12 +527,12 @@ pair<PivotResult, pair<int,int>> getDualPivot(const Matrix<ld>& A, const Matrix<
 
     return {
         PivotResult::FOUND_PIVOT,
-        {L, k + 1} // return the pivot as a position in the BbA matrix
+        {L, k + 1} // intoarce pivotul, dar ca o pozitie in matricea BbA;
     };
 }
 
 
-// run the dual simplex algorithm with a specified dually feasible starting dual basis and a min objective function
+// executa algoritmul simplex dual cu o baza dual admisibila specificata si cu o functie obiectiv de minim
 SimplexReturnType runDualSimplexWithDualBasisAndMinObjective(
     Matrix<ld> A,
     Matrix<ld> b,
@@ -542,14 +542,14 @@ SimplexReturnType runDualSimplexWithDualBasisAndMinObjective(
     int M = A.get1Dim();
     int N = A.get2Dim();
 
-    // check that the basis is correct
+    // verifica ca baza e corecta
     assert(basis.size() == M);
     assert(set<int>(basis.begin(), basis.end()).size() == basis.size());
 
     Matrix<ld> B = A.getSubmatrixWithColumns(basis);
     assert(( "The given variables don't form a basis", abs(B.getDeterminant()) > EPS ));
 
-    // set initial SimplexState
+    // seteaza starea simplex initiala (tabelul)
     SimplexState state = buildInitialState(A, b, c, basis);
 
     cout << "Starting min-objective dual simplex with the following state: \n";
@@ -591,7 +591,7 @@ SimplexReturnType runDualSimplexWithDualBasisAndMinObjective(
 
 
 
-// run the dual simplex algorithm with a specified dually feasible starting basis and a min/max objective
+// executa algoritmul simplex dual cu o baza dual admisibila specificata si cu o functie obiectiv de minim / maxim
 SimplexReturnType runDualSimplexWithDualBasis(
     Matrix<ld> A,
     Matrix<ld> b,
@@ -616,7 +616,7 @@ SimplexReturnType runDualSimplexWithDualBasis(
 
 
 
-// run the dual simplex algorithm with any basis as input (a possibly non-dual basis) and a min objective
+// executa algoritmul simplex dual cu o baza oarecare specificata si cu o functie obiectiv de minim
 SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
     Matrix<ld> A,
     Matrix<ld> b,
@@ -631,7 +631,7 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
     assert(M == b.get1Dim());
     assert(1 == b.get2Dim());
 
-    // check that the basis is correct
+    // verifica ca baza e corecta
     assert(basis.size() == M);
     assert(set<int>(basis.begin(), basis.end()).size() == basis.size());
     for (int idx : basis) {
@@ -640,29 +640,30 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
 
     Matrix<ld> B = A.getSubmatrixWithColumns(basis);
     assert(( "The given variables don't form a basis", abs(B.getDeterminant()) > EPS ));
-    set<int> basisSet(basis.begin(), basis.end()); // a set of 0-indexed variable indexes
+    set<int> basisSet(basis.begin(), basis.end()); // baza ca un set; va contine indici indexati de la 0
 
 
-    // check if the basis is dually feasible or otherwise get the k column for finding a dual basis
+    // verifica daca baza este chiar dual admisibila;
+    // daca nu, obtine coloana k din algoritmul de determinare a unei baze dual admisibile.
     SimplexState aux_state = buildInitialState(A, b, c, basis);
 
-    int k = -1; // k is a 0-indexed variable index
+    int k = -1; // k e un index de variabila si este indexat de la 0
     for (int j = 0; j < N; ++j) {
-        if (basisSet.count(j) == 0) { // the jth variable is not part of the basis
+        if (basisSet.count(j) == 0) { // variabila j nu este in baza
             if (k == -1 || aux_state.z_c[0][k] < aux_state.z_c[0][j]) {
                 k = j;
             }
         }
     }
 
-    if (aux_state.z_c[0][k] <= 0) { // given basis is dually feasible
+    if (aux_state.z_c[0][k] <= 0) { // baza data este dual admisibila
         cout << "The given basis is actually dually feasible. Applying dual simplex...\n";
         return runDualSimplexWithDualBasisAndMinObjective(A, b, c, basis);
     }
 
     cout << "The initial k (1-indexed) needed to find the dual basis is " << k + 1 << '\n';
 
-    // build A1 matrix    
+    // construieste A1 pentru problema liniara asociata
     Matrix<ld> A1(M + 1, N + 1);
     A1[0][0] = 1;
     for (int i = 1; i < M + 1; ++i) {
@@ -670,7 +671,7 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
     }
 
     for (int j = 0; j < N; ++j) {
-        if (basisSet.count(j) == 0) { // variable is not in basis, so the first row value is 1
+        if (basisSet.count(j) == 0) { // variabila nu este in baza, deci pe primul rand introdus punem valoarea 1
             A1[0][j + 1] = 1;
         }
     }
@@ -684,24 +685,24 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
     assert(A1.getSubmatrixWithoutRowAndColumn(0, 0) == A);
 
 
-    // build b1 vector
+    // construieste b1 pentru problema liniara asociata
     Matrix<ld> b1(M + 1, 1);
-    b1[0][0] = LARGE_VALUE; // a large value
+    b1[0][0] = LARGE_VALUE; // o valoare suficient de mare (M)
     for (int i = 0; i < M; ++i) {
         b1[i + 1][0] = b[i][0];
     }
 
 
-    // build c1 vector
+    // construieste c1 pentru problema liniara asociata
     Matrix<ld> c1(1, N + 1);
-    c1[0][0] = 0; // cost for x0
+    c1[0][0] = 0; // costul lui x0 (variabila artificiala introdusa)
     for (int j = 0; j < N; ++j) {
         c1[0][j + 1] = c[0][j];
     }
 
 
 
-    // make a new basis by adding the kth variable (at the start)
+    // construieste o noua baza adaugand variabila k la inceputul bazei date
     vector<int> newBasis = basis;
     newBasis.push_back(-100);
     for (int i = newBasis.size() - 1; i > 0; --i) {
@@ -709,8 +710,8 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
     }
     newBasis[0] = k;
 
-    // all variables in the newBasis are non-artificial and they need to be offset by 1 to the right
-    // e.g.: variable 1 is now 2 in the new linear problem;
+    // toate variabilele din newBasis sunt neartificiale, dar incep de la 0,
+    // asa ca le crestem valoarea cu 1
     for (int& val : newBasis) {
         val += 1;
     }
@@ -738,7 +739,7 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
         };
     }
 
-    // we found an optimal solution to the extended problem
+    // am gasit o solutie optima pentru problema asociata
 
 
     set<int> retBasisSet(ret.state.basis.begin(), ret.state.basis.end());
@@ -746,9 +747,9 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
     retBasisSetWithout0.erase(0);
 
 
-    if (retBasisSet.count(0) > 0) { // the artificial variable is in the returned basis
+    if (retBasisSet.count(0) > 0) { // variabila artificiala x0 este in baza gasita
 
-        // then the rest of the basis is an optimal basis for the initial problem
+        // atunci restul bazei este o baza optima pentru problema initiala
         vector<int> basisForInitialProblem;
         for (int idx : retBasisSetWithout0) {
             basisForInitialProblem.push_back(idx - 1);
@@ -767,10 +768,10 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
 
 
 
-    // find the coefficient of LARGE_VALUE in the expression of the objective function
+    // gaseste coeficientul lui LARGE_VALUE (M) din expresia functiei obiectiv
     long double coefficient;
     {
-        // get the objective function's coefficients for the returned basis:
+        // obtine coeficientii din c corespunzatori variabilelor din baza
         Matrix<ld> cB1W(M + 1, 1);
         for (int i = 0; i < M + 1; ++i) {
             cB1W[i][0] = c1[0][ret.state.basis[i]];
@@ -783,9 +784,8 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
 
     cout << "M's coefficient is " << coefficient << '\n';
     
-    if (abs(coefficient) < EPS) { // coefficient is 0
+    if (abs(coefficient) < EPS) { // coeficientul lui M este 0
 
-        // the found basis is also an optimal basis for the initial problem
         vector<int> basisForInitialProblem;
         for (int idx : retBasisSet) {
             basisForInitialProblem.push_back(idx - 1);
@@ -812,7 +812,7 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
 
 
 
-// run the dual simplex algorithm with any basis as input (a possibly non-dual basis) and a min/max objective
+// executa algoritmul simplex dual pe o baza oarecare si cu o functie obiectiv de minim sau de maxim
 SimplexReturnType runDualSimplexWithAnyBasis(
     Matrix<ld> A,
     Matrix<ld> b,

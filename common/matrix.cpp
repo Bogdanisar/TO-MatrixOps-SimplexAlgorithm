@@ -214,7 +214,7 @@ public:
         return ret;
     }
 
-    // apply the substitution lemma
+    // applica lema substitutiei
     Matrix getInverseOfColumnCorrectedMatrix(int columnIndex, vector<NumberType> column) const {
         assert(this->isSquareMatrix());
 
