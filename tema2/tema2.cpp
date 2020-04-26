@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include "matrix.cpp"
+#include "../common/matrix.cpp"
 
 #if 1
     #define pv(x) std::cerr<<#x<<" = "<<(x)<<"; ";std::cerr.flush()

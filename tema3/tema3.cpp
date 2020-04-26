@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
-#include "matrix.cpp"
-#include "simplex.h"
-#include "simplex.cpp"
+#include "../common/matrix.cpp"
+#include "../common/simplex.h"
+#include "../common/simplex.cpp"
 
 #if 1
     #define pv(x) std::cerr<<#x<<" = "<<(x)<<"; ";std::cerr.flush()
@@ -108,7 +108,8 @@ void testSimplexWithoutBasis() {
 
 
 int main() {
-    testSimplexWithoutBasis();
+    testSimplexWithBasis();
+    // testSimplexWithoutBasis();
 
     return 0;
 }
