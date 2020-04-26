@@ -54,15 +54,7 @@ void testDualSimplexWithDualBasis() {
     }
 
     SimplexReturnType result = runDualSimplexWithDualBasis(A, Matrix<long double>(b).getTranspose(), Matrix<long double>(c), obj, basis);
-    pv((int)result.result);pn;
-    pv(result.state.z);pn;
-
-    for (int i = 0; i < result.vvb.size(); ++i) {
-        pv(result.vvb[i]);pn;
-    }
-    for (int i = 0; i < result.state.basis.size(); ++i) {
-        pv(result.state.basis[i]);pn;
-    }
+    printSimplexReturnType(result);
 }
 
 
@@ -102,15 +94,7 @@ void testDualSimplexWithAnyBasis() {
     }
 
     SimplexReturnType result = runDualSimplexWithAnyBasis(A, Matrix<long double>(b).getTranspose(), Matrix<long double>(c), obj, basis);
-    pv((int)result.result);pn;
-    pv(result.state.z);pn;
-
-    for (int i = 0; i < result.vvb.size(); ++i) {
-        pv(result.vvb[i]);pn;
-    }
-    for (int i = 0; i < result.state.basis.size(); ++i) {
-        pv(result.state.basis[i]);pn;
-    }
+    printSimplexReturnType(result);
 }
 
 

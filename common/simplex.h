@@ -26,6 +26,9 @@ struct SimplexReturnType {
     SimplexState state;
 };
 
+// afiseaza rezultatul executiei unui algoritm simplex;
+void printSimplexReturnType(SimplexReturnType ret);
+
 
 // executa algoritmul simplex (pe o functie obiectiv de minim sau maxim) fara a specifica o baza admisibila initiala
 SimplexReturnType runSimplex(

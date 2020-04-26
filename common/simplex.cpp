@@ -34,7 +34,7 @@ void printSimplexState(SimplexState state) {
     }
     cout << "\n";
 
-    cout << "basis: ";
+    cout << "baza: ";
     for (int v : state.basis) {
         cout << v << ' ';
     }
@@ -42,6 +42,41 @@ void printSimplexState(SimplexState state) {
 
     cout << sep << endl;
 }
+
+
+// afiseaza rezultatul executiei unui algoritm simplex;
+void printSimplexReturnType(SimplexReturnType ret) {
+    string sep = "------------------------------------  REZULTAT  ------------------------------------";
+    cout << '\n' << sep << '\n';
+
+    if (ret.result == SimplexResult::NO_SOLUTION) {
+        cout << "Problema liniara nu are solutie!\n";
+    }
+    else if (ret.result == SimplexResult::INFINITE_SOLUTION) {
+        cout << "Problema liniara are solutie infinita!\n";
+    }
+    else {
+        cout << "Problema liniara are valoarea de optim: " << ret.state.z << "\n";
+
+        cout << "pentru baza (indexata de la 1):\n";
+        for (int v : ret.state.basis) {
+            cout << v + 1 << ' ';
+        }
+        cout << '\n';
+
+        cout << "cu VVB:\n";
+        for (long double v : ret.vvb) {
+            cout << v << ' ';
+        }
+        cout << '\n';
+
+        cout << "\nUltima stare la care a ajuns algoritmul este:";
+        printSimplexState(ret.state);
+    }
+    
+    cout << sep << '\n';
+}
+
 
 void assertState(const Matrix<ld>& A, const Matrix<ld>& c, const SimplexState& state) {
     int M = A.get1Dim();
@@ -369,8 +404,8 @@ SimplexReturnType runSimplex(
     SimplexReturnType ret = runSimplexWithMinObjective(auxA, b, auxC, auxBasis);
     assert(ret.result != SimplexResult::NO_SOLUTION && ret.result != SimplexResult::INFINITE_SOLUTION);
 
-    cout << "The first simplex of the two phase method has this result:\n";
-    printSimplexState(ret.state);
+    cout << "Primul simplex primal din metoda celor doua faze are urmatorul rezultat:\n";
+    printSimplexReturnType(ret);
     
     if (abs(ret.state.z) > EPS) {
         return SimplexReturnType{
@@ -727,8 +762,8 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
     SimplexReturnType ret = runDualSimplexWithDualBasisAndMinObjective(A1, b1, c1, newBasis);
     assert(ret.result != SimplexResult::INFINITE_SOLUTION);
 
-    cout << "The result of the dual simplex on the extended problem is:\n";
-    printSimplexState(ret.state);
+    cout << "Rezultatul algoritmului simplex dual pe problema liniara asociata este:\n";
+    printSimplexReturnType(ret);
 
     if (ret.result == SimplexResult::NO_SOLUTION) {
         cout << "The extended problem did not have a solution so the initial problem does not have a solution\n";
