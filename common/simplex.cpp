@@ -92,6 +92,7 @@ void assertState(const Matrix<ld>& A, const Matrix<ld>& c, const SimplexState& s
     assert(N == state.z_c.get2Dim());
 
     assert(M == state.basis.size());
+    assert(M == set<int>(state.basis.begin(), state.basis.end()).size());
     for (int idx : state.basis) {
         assert(0 <= idx && idx < N);
     }
@@ -833,19 +834,14 @@ SimplexReturnType runDualSimplexWithAnyBasisAndMinObjective(
             cB1W[i][0] = c1[0][ret.state.basis[i]];
         }
 
-        Matrix<ld> B1W = A1.getSubmatrixWithColumns( vector<int>(retBasisSet.begin(), retBasisSet.end()) );
+        Matrix<ld> B1W = A1.getSubmatrixWithColumns(ret.state.basis);
 
-        coefficient = (cB1W.getTranspose() * B1W)[0][0];
+        coefficient = (cB1W.getTranspose() * B1W.getInverse())[0][0];
     }
 
     cout << "Coeficientul lui M este: " << coefficient << '\n';
     
     if (abs(coefficient) < EPS) { // coeficientul lui M este 0
-
-        vector<int> basisForInitialProblem;
-        for (int idx : retBasisSet) {
-            basisForInitialProblem.push_back(idx - 1);
-        }
 
         cout << "Coeficientul a fost 0,\n";
         cout << "deci valoarea optima gasita pentru problema asociata\n";
