@@ -1,3 +1,15 @@
+2 4
+-1 0 1 0
+0 -1 0 1
+5
+6
+max
+1 1 0 0
+3 4
+# exemplu in care baza data este dual admisibila, dar prin trecerea la problema de minim
+# baza isi pierde proprietatea de a fi dual admisibila si algoritmul nu poate continua;
+
+
 2 5
 -1 -2 -3 1 0
 -2 -2 -1 0 1
@@ -7,6 +19,20 @@ min
 3 4 5 0 0
 4 5
 # exemplul din carte de la pagina 94
+
+
+
+2 4
+1 0 1 0
+0 1 0 1
+-5
+-6
+min
+1 2 0 0 
+3 4
+# problema nu are solutii
+
+
 
 
 

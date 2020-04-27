@@ -301,6 +301,12 @@ SimplexReturnType runSimplexWithMinObjective(
     // seteaza starea simplex initiala (tabelul)
     SimplexState state = buildInitialState(A, b, c, basis);
 
+    // verifica ca baza e si admisibila:
+    for (long double vvb : getVVB(state.BbA)) {
+        assert(( "Baza data nu este admisibila!", vvb >= 0 ));
+    }
+    
+
     cout << "Se porneste executia unui simplex primal cu functie obiectiv de minim;\n";
     cout << "Starea initiala (tabelul) este:\n";
 
@@ -594,6 +600,12 @@ SimplexReturnType runDualSimplexWithDualBasisAndMinObjective(
 
     // seteaza starea simplex initiala (tabelul)
     SimplexState state = buildInitialState(A, b, c, basis);
+
+    // verifica ca baza data este dual admisibila
+    for (int j = 0; j < N; ++j) {
+        assert(( "Baza data nu este dual admisibila", state.z_c[0][j] <= 0 ));
+    }
+
 
     cout << "Incepe executia algoritmului simplex dual cu functie obiectiv de minim\n";
     cout << "Starea initiala (tabelul) este:\n";
