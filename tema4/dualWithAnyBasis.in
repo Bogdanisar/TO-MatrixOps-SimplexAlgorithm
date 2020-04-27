@@ -1,12 +1,14 @@
 2 5
--1 -2 -3 1 0
--2 -2 -1 0 1
--5
--6
+1 0 1 1 -1
+0 1 -1 -1 1
+-2
+1
 min
-3 4 5 0 0
-3 4
-# exemplul din carte de la pagina 94, dar care incepe pe o baza oarecare
+0 0 -1 1 1
+1 2
+# exemplul din materialul "Baza dual admisibila.pdf"
+
+
 
 
 
@@ -18,16 +20,33 @@ min
 min
 3 4 5 0 0
 4 5
-# exemplul din carte de la pagina 94 (baza data este chiar dual admisibila)
+# exemplul din carte de la pagina 94 (algoritmului i se da chiar o baza dual admisibila)
 
 
 
 2 5
-1 0 1 1 -1
-0 1 -1 -1 1
--2
-1
+-1 -2 -3 1 0
+-2 -2 -1 0 1
+-5
+-6
 min
-0 0 -1 1 1
-1 2
-# exemplul din materialul "Baza dual admisibila.pdf"
+3 4 5 0 0
+3 4
+# exemplul din carte de la pagina 94, dar care incepe pe o baza oarecare
+
+
+
+
+2 4
+-1 0 1 0
+0 -1 0 1
+5
+6
+max
+1 1 1 1
+3 4
+# problema are optim infinit
+
+
+
+
