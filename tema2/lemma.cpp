@@ -34,22 +34,29 @@ void showLemma() {
     cout << "Matricea:\n";
     cout << matrix << "\n\n";
     
-    cout << "Determinantul = " << matrix.getDeterminant() << "\n";
+    Numeric det = matrix.getDeterminant();
+    cout << "Determinantul = " << det << "\n";
 
-    cout << "Inversa:\n";
-    cout << matrix.getInverse() << '\n';
+    if (abs(det) < 1e-10) {
+        cout << "Matricea este singulara.\n";
+        cout << "Opreste programul...\n";
+    }
+    else {
+        cout << "Inversa:\n";
+        cout << matrix.getInverse() << '\n';
 
-    cout << "Matrice * Inversa:\n";
-    cout << matrix * matrix.getInverse() << '\n';
+        cout << "Matrice * Inversa:\n";
+        cout << matrix * matrix.getInverse() << '\n';
 
-    cout << "Matricea alterata:\n";
-    cout << matrix.getColumnCorrectMatrix(index, column) << '\n';
+        cout << "Matricea alterata:\n";
+        cout << matrix.getColumnCorrectMatrix(index, column) << '\n';
 
-    cout << "Inversa matricei alterate prin lema substitutiei:\n";
-    cout << matrix.getInverseOfColumnCorrectedMatrix(index, column) << '\n';
+        cout << "Inversa matricei alterate prin lema substitutiei:\n";
+        cout << matrix.getInverseOfColumnCorrectedMatrix(index, column) << '\n';
 
-    cout << "Matricea alterata * Inversa ei:\n";
-    cout << matrix.getColumnCorrectMatrix(index, column) * matrix.getInverseOfColumnCorrectedMatrix(index, column) << '\n';
+        cout << "Matricea alterata * Inversa ei:\n";
+        cout << matrix.getColumnCorrectMatrix(index, column) * matrix.getInverseOfColumnCorrectedMatrix(index, column) << '\n';
+    }
 }
 
 int main() {
